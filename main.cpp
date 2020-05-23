@@ -210,7 +210,113 @@ void deleteVertex(char label){ //remove vertex
 }
 
 
-//Dijkstra's algorithm HE
+
+void findShortest(char startLabel, char  endLabel){ //finding the shortest path between two points (using Dijkstra's algorithm)
+	
+	Vertex* start = NULL;
+	Vertex* end = NULL;
+
+	vector<Vertex*>::iterator it;
+	vector<Edge*>::iterator ite;
+
+	for(it = vertices.begin(); it != vertices.end(); it++){//finding vertices with these labels
+		if((*it) -> getLabel() == startLabel){
+			start = *it;
+		}
+
+		if((*it) -> getLabel() == endLabel){
+			end = *it;
+		}
+	}
+
+	if(start == NULL || end == NULL){ //first or last doesn't exist
+		cout << "\nVertex not found." << endl;
+		return;
+	}
+
+	if(start == end){//if the start and end vertex are the same
+		cout << "\nBoth vertexes are at the same location." << endl;
+		return;
+	}
+
+	if(start != NULL && end != NULL && !edges.empty()){
+		vector<Vertex*> checked;
+		vector<Vertex*> unchecked = vertices;
+
+		Vertex* current = NULL;
+
+		for(it = unchecked.begin(); it != unchecked.end(); it++){ //find first vertex
+			if ((*it) == start) {
+				(*it) -> setDistance(0);
+				current = (*it);
+				break;
+			}
+		}
+
+		while(!unchecked.empty()){
+			int distance = current -> getDistance();
+			for(it = unchecked.begin(); it != unchecked.end(); it++){
+				if((*it) -> getLabel() != current -> getLabel()){
+					for (ite = edges.begin(); ite != edges.end(); ite++){
+						//cout << "wait.. is this actuall happening?!";
+						if ((*ite) -> getFirst() -> getLabel() == current -> getLabel() && (*ite) -> getSecond() -> getLabel() == (*it) -> getLabel()) {
+							if ((*it) -> getDistance() == -1 || (*it) -> getDistance() > distance + (*ite) -> getWeight()) {
+								(*it) -> setDistance(distance + (*ite) -> getWeight());
+							}
+						}
+					}
+				}
+			}
+
+			Vertex* newCurrent = NULL;
+
+			for(it = unchecked.begin(); it != unchecked.end(); it++){
+				if((*it) -> getLabel() == current -> getLabel()){
+					unchecked.erase(it);
+					checked.push_back(current);
+					//cout << "got here!!!";
+					break;
+				}
+			}
+
+			for(it = unchecked.begin(); it != unchecked.end(); it++){ //find second vertex
+				if (newCurrent == NULL){
+					newCurrent = *it;
+				}
+
+				if (newCurrent->getDistance() > (*it)->getDistance()){
+					if ((*it)->getDistance() > 0){
+						newCurrent = *it;
+					}
+				}
+			}
+			current = newCurrent;
+		}
+
+		for(it = checked.begin(); it != checked.end(); it++){//finding the final distance at the end vertex
+			if((*it)->getLabel() == endLabel){
+				if((*it)->getDistance() > 0){
+					cout << "\nDistance between vertex " << startLabel << " and " << endLabel << ": " << (*it) -> getDistance() << endl;
+					break;
+				}
+				else if ((*it)->getDistance() == -1){ //if the end vertex still has a -1 (infinite) distance
+					cout << "\nVertices are not connected." << endl;
+				}
+			}
+		}
+
+	}
+	else if(edges.empty()){ //if there are no edges
+		cout << "\nThere are no edges." << endl;
+	}
+	else{ //first or last doesn't exist
+		cout << "\nVertex not found." << endl;
+	}
+
+	for (it = vertices.begin(); it != vertices.end(); it++){ //resetting the vector
+		(*it)->setDistance(-1);
+	}
+}
 
 
 
@@ -277,8 +383,15 @@ int main(){
 
 	while(true){
 		
-		cout << "Enter a command: ";
-		cout << "'av' to add vertex, 'ae' to add an edge, 'rv' to remove a vertex, 're' to remove an edge, 'print' to print the adjacency matrix, or 'exit' to exit the program."; << endl;
+		cout << "\nCommands:" << endl;
+		
+		cout << "'av' to add vertex." << endl;
+		cout << "'ae' to add an edge." << endl;
+		cout << "'rv' to remove a vertex." << endl;
+		cout << "'re' to remove an edge." << endl;
+		cout << "'print' to print the adjacency matrix." << endl;
+		cout << "'path' to return the shortest path between two verticies." << endl;
+		cout << "'exit' to exit the program." << endl;
 		
 		cout << "Enter a command: ";
 		
@@ -333,6 +446,18 @@ int main(){
 		
 		else if (strcmp(command, "print") == 0){ //print matrix
 			printAdjacency();
+		}
+		
+		else if(strcmp(command, "path") == 0){//shortest path
+			cout << "\nEnter the first vertex: ";
+			cin >> char1;
+			cin.clear();
+			cin.ignore(9999, '\n');
+			cout << "\nEnter the last vertex: ";
+			cin >> charInput2;
+			cin.clear();
+			cin.ignore(9999, '\n');
+			findShortest(char1, charInput2);
 		}
 		
 		else if(strcmp(command, "exit") == 0){ //quit program
